@@ -3,19 +3,19 @@ package dfa
 
 import (
 	"github.com/samber/lo"
-	"github.com/y-yu/sfa-go/dfa/dfarule"
+	"github.com/y-yu/sfa-go/common"
 	"github.com/y-yu/sfa-go/utils"
 )
 
 // DFA represents a Deterministic Finite Automaton.
 type DFA struct {
-	I     utils.State // initial state
+	I     common.State // initial state
 	F     utils.Set
-	Rules dfarule.RuleMap // transition function
+	Rules RuleMap // transition function
 }
 
 // NewDFA returns a new dfa.
-func NewDFA(init utils.State, accepts utils.Set, rules dfarule.RuleMap) *DFA {
+func NewDFA(init common.State, accepts utils.Set, rules RuleMap) *DFA {
 	return &DFA{
 		I:     init,
 		F:     accepts,
@@ -31,11 +31,11 @@ func (dfa *DFA) Minimize() {
 	}
 	n := states.Cardinality()
 
-	eqMap := map[utils.State]utils.State{}
+	eqMap := map[common.State]common.State{}
 	for i := 0; i < n; i++ {
-		q1 := utils.NewState(i)
+		q1 := common.NewState(i)
 		for j := i + 1; j < n; j++ {
-			q2 := utils.NewState(j)
+			q2 := common.NewState(j)
 			if !dfa.isEquivalent(q1, q2) {
 				continue
 			}
@@ -48,7 +48,7 @@ func (dfa *DFA) Minimize() {
 	}
 }
 
-func (dfa *DFA) replaceState(to, from utils.State) {
+func (dfa *DFA) replaceState(to, from common.State) {
 	if dfa.I == from {
 		dfa.I = to
 	}
@@ -61,7 +61,7 @@ func (dfa *DFA) replaceState(to, from utils.State) {
 	}
 }
 
-func (dfa *DFA) deleteState(q utils.State) {
+func (dfa *DFA) deleteState(q common.State) {
 	rules := dfa.Rules
 	for arg := range rules {
 		if arg.From == q {
@@ -70,12 +70,12 @@ func (dfa *DFA) deleteState(q utils.State) {
 	}
 }
 
-func (dfa *DFA) mergeState(to, from utils.State) {
+func (dfa *DFA) mergeState(to, from common.State) {
 	dfa.replaceState(to, from)
 	dfa.deleteState(from)
 }
 
-func (dfa *DFA) isEquivalent(q1, q2 utils.State) bool {
+func (dfa *DFA) isEquivalent(q1, q2 common.State) bool {
 	if !((dfa.F.Contains(q1) && dfa.F.Contains(q2)) ||
 		(!dfa.F.Contains(q1) && !dfa.F.Contains(q2))) {
 		return false
@@ -86,15 +86,15 @@ func (dfa *DFA) isEquivalent(q1, q2 utils.State) bool {
 		if k.From != q1 {
 			continue
 		}
-		if rules[dfarule.NewRuleArgs(q1, k.C)] != rules[dfarule.NewRuleArgs(q2, k.C)] {
+		if rules[common.NewRuleArgs(q1, k.C)] != rules[common.NewRuleArgs(q2, k.C)] {
 			return false
 		}
 	}
 	return true
 }
 
-func (dfa *DFA) AllStates() []utils.State {
-	allState := []utils.State{dfa.I}
+func (dfa *DFA) AllStates() []common.State {
+	allState := []common.State{dfa.I}
 	for k, v := range dfa.Rules {
 		allState = append(allState, v, k.From)
 	}
@@ -105,7 +105,7 @@ func (dfa *DFA) AllStates() []utils.State {
 // simulating d transitions.
 type Runtime struct {
 	d   *DFA
-	cur utils.State
+	cur common.State
 }
 
 // GetRuntime returns a new Runtime for simulating d transitions.
@@ -125,7 +125,7 @@ func NewRuntime(d *DFA) (r *Runtime) {
 // transit execute a transition with a symbol, and returns whether
 // the transition is success (or not).
 func (r *Runtime) transit(c rune) bool {
-	key := dfarule.NewRuleArgs(r.cur, c)
+	key := common.NewRuleArgs(r.cur, c)
 	_, ok := r.d.Rules[key]
 	if ok {
 		r.cur = r.d.Rules[key]

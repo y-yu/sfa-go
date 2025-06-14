@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/y-yu/sfa-go/common"
 	"iter"
 	"maps"
 	"slices"
@@ -77,8 +78,8 @@ func (s MapSet[T]) Remove(v T) {
 	delete(s, v)
 }
 
-type Set = MapSet[State]
+type Set = MapSet[common.State]
 
-func NewSet(ss ...State) Set {
+func NewSet(ss ...common.State) Set {
 	return NewMapSet(ss...)
 }

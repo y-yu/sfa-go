@@ -4,8 +4,8 @@ package dfaregex
 import (
 	"github.com/y-yu/sfa-go/dfa"
 	"github.com/y-yu/sfa-go/nfa2dfa"
+	"github.com/y-yu/sfa-go/node"
 	"github.com/y-yu/sfa-go/parser"
-	"github.com/y-yu/sfa-go/utils"
 )
 
 // Regexp has a DFA and regexp string.
@@ -18,7 +18,7 @@ type Regexp struct {
 func NewRegexp(re string) *Regexp {
 	psr := parser.NewParser(re)
 	ast := psr.GetAST()
-	frg := ast.Assemble(utils.NewContext())
+	frg := ast.Assemble(node.NewContext())
 	nfa := frg.Build()
 	d := nfa2dfa.ToDFA(nfa)
 	d.Minimize()

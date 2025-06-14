@@ -3,20 +3,20 @@ package nfa
 
 import (
 	"github.com/samber/lo"
-	"github.com/y-yu/sfa-go/dfa/dfarule"
-	"github.com/y-yu/sfa-go/nfa/nfarule"
+	"github.com/y-yu/sfa-go/common"
+	"github.com/y-yu/sfa-go/dfa"
 	"github.com/y-yu/sfa-go/utils"
 )
 
 // NFA represents a Non-Deterministic Finite Automaton.
 type NFA struct {
-	I     utils.State     // initial state
-	F     utils.Set       // accept states
-	Rules nfarule.RuleMap // transition function
+	I     common.State // initial state
+	F     utils.Set    // accept states
+	Rules RuleMap      // transition function
 }
 
 // NewNFA returns a new NFA.
-func NewNFA(init utils.State, accepts utils.Set, rules nfarule.RuleMap) *NFA {
+func NewNFA(init common.State, accepts utils.Set, rules RuleMap) *NFA {
 	return &NFA{
 		I:     init,
 		F:     accepts,
@@ -44,8 +44,8 @@ func (nfa *NFA) AllSymbol() utils.MapSet[rune] {
 
 // CalcDst returns, according to the transition function, a set of states
 // to which transition is executed when c is received in the state of argument q.
-func (nfa *NFA) CalcDst(q utils.State, c rune) (utils.Set, bool) {
-	s, ok := nfa.Rules[nfarule.NewRuleArgs(q, c)]
+func (nfa *NFA) CalcDst(q common.State, c rune) (utils.Set, bool) {
+	s, ok := nfa.Rules[common.NewRuleArgs(q, c)]
 	if ok {
 		return s, true
 	}
@@ -62,8 +62,8 @@ func (nfa *NFA) ToWithoutEpsilon() {
 
 // removeEpsilonRule returns a new RuleMap removing epsilon transitions
 // from original RuleMap.
-func (nfa *NFA) removeEpsilonRule() (newRule nfarule.RuleMap) {
-	newRule = nfarule.RuleMap{}
+func (nfa *NFA) removeEpsilonRule() (newRule RuleMap) {
+	newRule = RuleMap{}
 	states, sym := nfa.allStates(), nfa.AllSymbol()
 	sym.Remove('ε')
 
@@ -71,11 +71,11 @@ func (nfa *NFA) removeEpsilonRule() (newRule nfarule.RuleMap) {
 		for c := range sym.Iter() {
 			for mid := range nfa.epsilonClosure(q).Iter() {
 				dst := nfa.epsilonExpand(mid, c)
-				s, ok := newRule[nfarule.NewRuleArgs(q, c)]
+				s, ok := newRule[common.NewRuleArgs(q, c)]
 				if !ok {
 					s = utils.NewSet()
 				}
-				newRule[nfarule.NewRuleArgs(q, c)] = s.Union(dst)
+				newRule[common.NewRuleArgs(q, c)] = s.Union(dst)
 			}
 		}
 	}
@@ -90,7 +90,7 @@ func (nfa *NFA) removeEpsilonRule() (newRule nfarule.RuleMap) {
 }
 
 // epsilonExpand returns the state set, which is a result of simulating the transitions like 'ε*->symbol->ε*'.
-func (nfa *NFA) epsilonExpand(state utils.State, symbol rune) (final utils.Set) {
+func (nfa *NFA) epsilonExpand(state common.State, symbol rune) (final utils.Set) {
 	first := nfa.epsilonClosure(state)
 
 	second := utils.NewSet()
@@ -110,7 +110,7 @@ func (nfa *NFA) epsilonExpand(state utils.State, symbol rune) (final utils.Set) 
 }
 
 // epsilonClosure returns a set of reachable states with epsilon transitions only.
-func (nfa *NFA) epsilonClosure(state utils.State) (reachable utils.Set) {
+func (nfa *NFA) epsilonClosure(state common.State) (reachable utils.Set) {
 	reachable = utils.NewSet(state)
 
 	modified := true
@@ -131,14 +131,14 @@ func (nfa *NFA) epsilonClosure(state utils.State) (reachable utils.Set) {
 // subsetConstruction implements Subset Construction.
 // Returns the data for constructing the equivalent DFA from the NFA given in the argument.
 // For details: https://en.wikipedia.org/wiki/Powerset_construction
-func (nfa *NFA) SubsetConstruction() (dI utils.State, dF utils.Set, dRules dfarule.RuleMap) {
+func (nfa *NFA) SubsetConstruction() (dI common.State, dF utils.Set, dRules dfa.RuleMap) {
 	I := nfa.I
 	F := nfa.F
 	rules := nfa.Rules
 
-	dI = utils.NewState(0)
+	dI = common.NewState(0)
 	dF = utils.NewSet()
-	dRules = dfarule.RuleMap{}
+	dRules = dfa.RuleMap{}
 
 	dStates := []dfaStatesMap{
 		{utils.NewSet(I), dI},
@@ -161,7 +161,7 @@ func (nfa *NFA) SubsetConstruction() (dI utils.State, dF utils.Set, dRules dfaru
 		for c := range sigma.Iter() {
 			dnext := utils.NewSet()
 			for q := range states.Iter() {
-				d, ok := rules[nfarule.NewRuleArgs(q, c)]
+				d, ok := rules[common.NewRuleArgs(q, c)]
 				if ok {
 					dnext = dnext.Union(d)
 				}
@@ -170,16 +170,16 @@ func (nfa *NFA) SubsetConstruction() (dI utils.State, dF utils.Set, dRules dfaru
 			dfaStateMap, found := lo.Find(dStates, func(ds dfaStatesMap) bool {
 				return ds.nfaStateSet.Equal(dnext)
 			})
-			var dState utils.State
+			var dState common.State
 			if !found {
 				queue = append(queue, dnext)
-				dState = utils.NewState(len(dStates))
+				dState = common.NewState(len(dStates))
 				dStates = append(dStates, dfaStatesMap{dnext, dState})
 			} else {
 				dState = dfaStateMap.dfaState
 			}
 
-			dRules[dfarule.NewRuleArgs(fromDfaStateMap.dfaState, c)] = dState
+			dRules[common.NewRuleArgs(fromDfaStateMap.dfaState, c)] = dState
 		}
 	}
 
@@ -189,5 +189,5 @@ func (nfa *NFA) SubsetConstruction() (dI utils.State, dF utils.Set, dRules dfaru
 // DFAStatesMap associates subsets of the NFA state set with the states of the DFA.
 type dfaStatesMap struct {
 	nfaStateSet utils.Set
-	dfaState    utils.State
+	dfaState    common.State
 }

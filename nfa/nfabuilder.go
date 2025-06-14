@@ -1,37 +1,36 @@
 // Package nfabuilder implements some structures and functions to construct NFA.
-package nfabuilder
+package nfa
 
 import (
-	"github.com/y-yu/sfa-go/nfa"
-	"github.com/y-yu/sfa-go/nfa/nfarule"
+	"github.com/y-yu/sfa-go/common"
 	"github.com/y-yu/sfa-go/utils"
 )
 
 // Fragment represents a fragment of NFA to construct a larger NFA.
 type Fragment struct {
-	I     utils.State // initial state
-	F     utils.Set   // accept states
-	Rules nfarule.RuleMap
+	I     common.State // initial state
+	F     utils.Set    // accept states
+	Rules RuleMap
 }
 
 // NewFragment returns a new Fragment.
 func NewFragment() *Fragment {
 	return &Fragment{
-		I:     utils.NewState(0),
+		I:     common.NewState(0),
 		F:     utils.NewSet(),
-		Rules: nfarule.RuleMap{},
+		Rules: RuleMap{},
 	}
 }
 
 // AddRule add a new transition rule to the Fragment.
 // Rule concept: State(from) -->[Symbol(c)]--> State(next)
-func (frg *Fragment) AddRule(from utils.State, c rune, next utils.State) {
+func (frg *Fragment) AddRule(from common.State, c rune, next common.State) {
 	r := frg.Rules
-	_, ok := r[nfarule.NewRuleArgs(from, c)]
+	_, ok := r[common.NewRuleArgs(from, c)]
 	if ok {
-		r[nfarule.NewRuleArgs(from, c)].Add(next)
+		r[common.NewRuleArgs(from, c)].Add(next)
 	} else {
-		r[nfarule.NewRuleArgs(from, c)] = utils.NewSet(next)
+		r[common.NewRuleArgs(from, c)] = utils.NewSet(next)
 	}
 }
 
@@ -60,6 +59,6 @@ func (frg *Fragment) MergeRule(frg2 *Fragment) (synthesizedFrg *Fragment) {
 }
 
 // Build converts NFA fragments into a NFA, and returns it.
-func (frg *Fragment) Build() *nfa.NFA {
-	return nfa.NewNFA(frg.I, frg.F, frg.Rules)
+func (frg *Fragment) Build() *NFA {
+	return NewNFA(frg.I, frg.F, frg.Rules)
 }

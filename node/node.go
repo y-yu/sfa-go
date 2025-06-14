@@ -24,9 +24,8 @@ package node
 
 import (
 	"fmt"
-
-	"github.com/y-yu/sfa-go/nfa/nfabuilder"
-	"github.com/y-yu/sfa-go/utils"
+	"github.com/y-yu/sfa-go/common"
+	"github.com/y-yu/sfa-go/nfa"
 )
 
 // String to identify the type of Node.
@@ -45,7 +44,7 @@ type Node interface {
 	SubtreeString() string
 
 	// Assemble returns a NFA fragment assembled with a Node.
-	Assemble(*utils.Context) *nfabuilder.Fragment
+	Assemble(*Context) *nfa.Fragment
 }
 
 // Character represents the Character node.
@@ -72,13 +71,13 @@ The fragment assembled from a Character node is like below:
 
 	q1(Initial State) -- [Character.V] --> q2(Accept state)
 */
-func (c *Character) Assemble(ctx *utils.Context) *nfabuilder.Fragment {
+func (c *Character) Assemble(ctx *Context) *nfa.Fragment {
 	// Prepare a fragment
-	newFrg := nfabuilder.NewFragment()
+	newFrg := nfa.NewFragment()
 
 	// Prepare states
-	q1 := utils.NewState(ctx.Increment())
-	q2 := utils.NewState(ctx.Increment())
+	q1 := common.NewState(ctx.Increment())
+	q2 := common.NewState(ctx.Increment())
 
 	// Set rules
 	newFrg.AddRule(q1, c.V, q2)
@@ -126,14 +125,14 @@ The fragment assembled from a Union node is like below:
 		+ frg1(fragment assembled with Union.Ope1): I1 -- [???] --> F1
 		+ frg2(fragment assembled with Union.Ope2): I2 -- [???] --> F2
 */
-func (u *Union) Assemble(ctx *utils.Context) *nfabuilder.Fragment {
+func (u *Union) Assemble(ctx *Context) *nfa.Fragment {
 	// Prepare fragments
-	newFrg := nfabuilder.NewFragment()
+	newFrg := nfa.NewFragment()
 	frg1 := u.Ope1.Assemble(ctx)
 	frg2 := u.Ope2.Assemble(ctx)
 
 	// Prepare a new state
-	newState := utils.NewState(ctx.Increment())
+	newState := common.NewState(ctx.Increment())
 
 	// Set rules
 	newFrg = frg1.MergeRule(frg2)
@@ -183,9 +182,9 @@ The fragment assembled from a Concat node is like below:
 	+ frg1(fragment assembled with Concat.Ope1): I1 -- [???] --> F1
 	+ frg2(fragment assembled with Concat.Ope2): I2 -- [???] --> F2
 */
-func (c *Concat) Assemble(ctx *utils.Context) *nfabuilder.Fragment {
+func (c *Concat) Assemble(ctx *Context) *nfa.Fragment {
 	// Prepare fragments
-	newFrg := nfabuilder.NewFragment()
+	newFrg := nfa.NewFragment()
 	frg1 := c.Ope1.Assemble(ctx)
 	frg2 := c.Ope2.Assemble(ctx)
 
@@ -239,14 +238,14 @@ The fragment assembled from a Star node is like below:
 
 Note: Accept states of new fragment is "(new state2)" and "I1".
 */
-func (s *Star) Assemble(ctx *utils.Context) *nfabuilder.Fragment {
+func (s *Star) Assemble(ctx *Context) *nfa.Fragment {
 	// Prepare fragments
 	orgFrg := s.Ope.Assemble(ctx)
 	newFrg := orgFrg.CreateSkeleton()
 
 	// Prepare states
-	newState1 := utils.NewState(ctx.Increment())
-	newState2 := utils.NewState(ctx.Increment())
+	newState1 := common.NewState(ctx.Increment())
+	newState2 := common.NewState(ctx.Increment())
 
 	// Set Rules
 	newFrg.AddRule(newState1, 'ε', newState2)
@@ -291,16 +290,16 @@ func NewPlus(ope Node) *Plus {
 /*
 Assemble returns a NFA fragment assembled with Plus node.
 */
-func (p *Plus) Assemble(ctx *utils.Context) *nfabuilder.Fragment {
+func (p *Plus) Assemble(ctx *Context) *nfa.Fragment {
 	// Prepare fragments
-	newFrg := nfabuilder.NewFragment()
+	newFrg := nfa.NewFragment()
 	frg1 := p.Ope.Assemble(ctx)
 	org := p.Ope.Assemble(ctx)
 	frg2 := org.CreateSkeleton()
 
 	// Prepare states
-	newState1 := utils.NewState(ctx.Increment())
-	newState2 := utils.NewState(ctx.Increment())
+	newState1 := common.NewState(ctx.Increment())
+	newState2 := common.NewState(ctx.Increment())
 
 	// Set Rules
 	frg2.AddRule(newState1, 'ε', newState2)

@@ -1,15 +1,14 @@
 package sfa
 
 import (
+	"github.com/y-yu/sfa-go/common"
 	"github.com/y-yu/sfa-go/dfa"
-	"github.com/y-yu/sfa-go/dfa/dfarule"
-	"github.com/y-yu/sfa-go/utils"
 )
 
 type SFA struct {
-	I     utils.State
-	F     []utils.State
-	Rules dfarule.RuleMap
+	I     common.State
+	F     []common.State
+	Rules dfa.RuleMap
 }
 
 func ToSFA(dfa dfa.DFA) SFA {

@@ -1,6 +1,6 @@
 module github.com/y-yu/sfa-go
 
-go 1.24.0
+go 1.24.4
 
 require github.com/samber/lo v1.51.0
 
