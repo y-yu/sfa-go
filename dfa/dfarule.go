@@ -11,7 +11,7 @@ import (
 // The key is a pair like "(from state, input symbol)".
 // The value is a destination state when "input symbol"
 // is received in "from state".
-type RuleMap map[common.RuleArgs]common.State
+type RuleMap map[common.RuleArg]common.State
 
 func (r RuleMap) String() string {
 	s := ""

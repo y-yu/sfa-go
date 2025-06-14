@@ -12,7 +12,7 @@ import (
 // The key is a pair like "(from state, input symbol)".
 // The value is a set of transition destination states
 // when "input symbol" is received in "from state".
-type RuleMap map[common.RuleArgs]utils.Set
+type RuleMap map[common.RuleArg]utils.Set
 
 func (r RuleMap) String() string {
 	s := ""
