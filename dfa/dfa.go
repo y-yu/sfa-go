@@ -101,6 +101,14 @@ func (dfa *DFA) AllStates() []common.State {
 	return lo.Uniq(allState)
 }
 
+func (dfa *DFA) AllSymbol() utils.MapSet[rune] {
+	symbols := utils.NewMapSet[rune]()
+	for key := range dfa.Rules {
+		symbols.Add(key.C)
+	}
+	return symbols
+}
+
 // Runtime has a pointer to d and saves current state for
 // simulating d transitions.
 type Runtime struct {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/y-yu/sfa-go/dfaregex"
+	"github.com/y-yu/sfa-go/sfa"
 )
 
 func main() {
@@ -10,7 +11,13 @@ func main() {
 	fmt.Printf("regex: %s\n", regex)
 	re := dfaregex.Compile(regex)
 
-	fmt.Printf("dfa states: %v\n", re.GetDFA())
+	d := re.GetDFA()
+	fmt.Printf("dfa states: %v\n", d)
+
+	s := sfa.ToSFA(d)
+	fmt.Printf("dfa states: %v\n", s)
+
+	sfa.SFA2dot(s, "abast")
 
 	for _, s := range []string{"aaa", "ababab", "babababb"} {
 		if re.Match(s) {
