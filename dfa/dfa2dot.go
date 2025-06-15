@@ -1,4 +1,4 @@
-package sfa
+package dfa
 
 // MIT License
 //
@@ -49,7 +49,7 @@ func NewCommonEdgeAttrs() CommonEdgeAttrs {
 	}
 }
 
-func SFA2dot(d *SFA, name string) {
+func DFA2dot(d DFA, name string) {
 	const GRAPH_NAME = "DFA"
 	g := gographviz.NewGraph()
 

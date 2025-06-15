@@ -5,6 +5,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/y-yu/sfa-go/common"
 	"github.com/y-yu/sfa-go/utils"
+	"maps"
+	"slices"
 )
 
 // DFA represents a Deterministic Finite Automaton.
@@ -98,15 +100,21 @@ func (dfa *DFA) AllStates() []common.State {
 	for k, v := range dfa.Rules {
 		allState = append(allState, v, k.From)
 	}
-	return lo.Uniq(allState)
+	result := lo.Uniq(allState)
+	slices.Sort(result)
+
+	return result
 }
 
-func (dfa *DFA) AllSymbol() utils.MapSet[rune] {
-	symbols := utils.NewMapSet[rune]()
-	for key := range dfa.Rules {
-		symbols.Add(key.C)
-	}
-	return symbols
+func (dfa *DFA) AllSymbol() []rune {
+	result := lo.Uniq(
+		lo.Map(slices.Collect(maps.Keys(dfa.Rules)), func(item common.RuleArg, _ int) rune {
+			return item.C
+		}),
+	)
+	slices.Sort(result)
+
+	return result
 }
 
 // Runtime has a pointer to d and saves current state for
