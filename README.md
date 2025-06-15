@@ -1,7 +1,7 @@
 Go SFA[^sfa] based Regular Expression Matching
 =================================================
 
-### Benchmark
+## Benchmark
 
 ```console
 $ go run main.go
