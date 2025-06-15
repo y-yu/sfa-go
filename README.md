@@ -14,4 +14,4 @@ SFA(parallel: 1)         time:   20550,  result:         false
 SFA(parallel: 20)        time:   4762,   result:         false
 ```
 
-[^sfa]: https://doi.org/10.1109/ICPP.2013.3
+[^sfa]: https://arxiv.org/abs/1405.0562
