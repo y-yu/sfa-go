@@ -5,18 +5,18 @@ import (
 	"github.com/y-yu/sfa-go/dfa"
 	"github.com/y-yu/sfa-go/dfaregex"
 	"github.com/y-yu/sfa-go/sfa"
+	"os"
+	"regexp"
 	"time"
 )
 
 func main() {
-	regex := "(aa|a)*X"
+	regex := "(ab|abab)*X"
 	fmt.Printf("regex: %s\n", regex)
 	re := dfaregex.Compile(regex)
 
 	d := re.GetDFA()
 	s := sfa.NewSFA(*d)
-
-	fmt.Printf("sfa: %s\n", s)
 
 	dfa.DFA2dot(*d, "dfa")
 	dfa.DFA2dot(s.ToDFA(), "sfa")
@@ -39,33 +39,37 @@ func main() {
 			}
 		}
 	*/
+	bytes, err := os.ReadFile("./testdata/abab.txt")
+	if err != nil {
+		panic(err)
+	}
 
-	/*
-		bytes, err := os.ReadFile("str.txt")
-		if err != nil {
-			panic(err)
-		}
+	fmt.Println("")
 
-		fmt.Println("\n")
+	goregex, _ := regexp.Compile(regex)
 
-		goregex, _ := regexp.Compile(regex)
+	measure("Go regex\t", func() bool {
+		return goregex.MatchString(string(bytes))
+	})
 
-		measure("Go regex", func() bool {
-			return goregex.MatchString(string(bytes))
-		})
+	runtime := dfa.NewRuntime(d)
+	measure("DFA\t\t", func() bool {
+		return runtime.Matching(string(bytes))
+	})
 
-		measure("DFA", func() bool {
-			return re.Match(string(bytes))
-		})
+	p := 1
+	measure(fmt.Sprintf("SFA(parallel: %d)", p), func() bool {
+		return s.Match(string(bytes), p)
+	})
 
-		measure("SFA", func() bool {
-			return s.Match(string(bytes), 1)
-		})
-	*/
+	p = 20
+	measure(fmt.Sprintf("SFA(parallel: %d)", p), func() bool {
+		return s.Match(string(bytes), p)
+	})
 }
 
 func measure(name string, f func() bool) {
 	startAt := time.Now()
 	result := f()
-	fmt.Printf("%s time:\t %d, result: \t %t\n", name, time.Now().UnixMilli()-startAt.UnixMilli(), result)
+	fmt.Printf("%s \t time:\t %d,\t result: \t %t\n", name, time.Now().UnixMicro()-startAt.UnixMicro(), result)
 }

@@ -21,7 +21,7 @@ func NewRegexp(re string) *Regexp {
 	frg := ast.Assemble(node.NewContext())
 	nfa := frg.Build()
 	d := nfa2dfa.ToDFA(nfa)
-	d.Minimize()
+	//d.Minimize()
 
 	return &Regexp{
 		regexp: re,

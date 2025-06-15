@@ -27,11 +27,8 @@ func NewDFA(init common.State, accepts utils.Set, rules RuleMap) *DFA {
 
 // Minimize minimizes the DFA.
 func (dfa *DFA) Minimize() {
-	states := utils.NewSet(dfa.I)
-	for _, v := range dfa.Rules {
-		states.Add(v)
-	}
-	n := states.Cardinality()
+	states := dfa.AllStates()
+	n := len(states)
 
 	eqMap := map[common.State]common.State{}
 	for i := 0; i < n; i++ {
@@ -138,18 +135,6 @@ func NewRuntime(d *DFA) (r *Runtime) {
 	return
 }
 
-// transit execute a transition with a symbol, and returns whether
-// the transition is success (or not).
-func (r *Runtime) transit(c rune) bool {
-	key := common.NewRuleArgs(r.cur, c)
-	_, ok := r.d.Rules[key]
-	if ok {
-		r.cur = r.d.Rules[key]
-		return true
-	}
-	return false
-}
-
 // isAccept returns whether current status is in accept states.
 func (r *Runtime) isAccept() bool {
 	accepts := r.d.F
@@ -164,9 +149,8 @@ func (r *Runtime) isAccept() bool {
 func (r *Runtime) Matching(str string) bool {
 	r.cur = r.d.I
 	for _, c := range []rune(str) {
-		if !r.transit(c) {
-			return false // if the transition failed, the input "str" is rejected.
-		}
+		key := common.NewRuleArgs(r.cur, c)
+		r.cur = r.d.Rules[key]
 	}
 	return r.isAccept()
 }

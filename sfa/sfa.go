@@ -1,7 +1,6 @@
 package sfa
 
 import (
-	"fmt"
 	"github.com/y-yu/sfa-go/common"
 	"github.com/y-yu/sfa-go/dfa"
 	"github.com/y-yu/sfa-go/utils"
@@ -11,6 +10,7 @@ import (
 type SFA struct {
 	I      common.State // initial state
 	F      utils.Set
+	DF     utils.Set
 	Rules  dfa.RuleMap
 	States StateStateMap
 }
@@ -22,7 +22,6 @@ type stateStateMapPair struct {
 
 func NewSFA(d dfa.DFA) SFA {
 	allState := d.AllStates()
-	fmt.Printf("allState: %v\n", allState)
 
 	fi := make(StateMap)
 	for _, state := range allState {
@@ -48,10 +47,7 @@ func NewSFA(d dfa.DFA) SFA {
 
 		sfaStates[fromState] = fromStateMap
 
-		fmt.Printf("sfaStates: %v\n", sfaStates)
-
 		for _, c := range sigma {
-			fmt.Printf("c: %s\n", string(c))
 			fnext := make(StateMap)
 
 			for _, state := range allState {
@@ -61,7 +57,6 @@ func NewSFA(d dfa.DFA) SFA {
 			}
 
 			foundState, found := sfaStates.FindState(fnext)
-			fmt.Printf("from %v, fnext %v, found: %t, found state %v\n", fromStateMap, fnext, found, foundState)
 
 			var state common.State
 			if !found {
@@ -82,6 +77,7 @@ func NewSFA(d dfa.DFA) SFA {
 	return SFA{
 		I:      d.I,
 		F:      f,
+		DF:     d.F,
 		Rules:  rules,
 		States: sfaStates,
 	}
@@ -107,11 +103,10 @@ func (s *SFA) Match(str string, p int) bool {
 
 	wg := sync.WaitGroup{}
 	curs := make([]common.State, p)
-	//mu := sync.Mutex{}
 	for i := range p {
 		wg.Add(1)
 
-		func(i int) {
+		go func(i int) {
 			defer wg.Done()
 
 			cur := s.I
@@ -120,11 +115,7 @@ func (s *SFA) Match(str string, p int) bool {
 				next, _ := s.Rules[key]
 				cur = next
 			}
-			//mu.Lock()
 			curs[i] = cur
-			//mu.Unlock()
-
-			fmt.Printf("i %d\n", i)
 		}(i)
 	}
 	wg.Wait()
@@ -134,5 +125,5 @@ func (s *SFA) Match(str string, p int) bool {
 		f = s.States[cur][f]
 	}
 
-	return s.F.Contains(f)
+	return s.DF.Contains(f)
 }
