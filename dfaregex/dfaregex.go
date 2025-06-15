@@ -36,8 +36,7 @@ func Compile(re string) *Regexp {
 
 // Match returns whether the input string matches the regular expression.
 func (re *Regexp) Match(s string) bool {
-	rt := re.d.GetRuntime()
-	return rt.Matching(s)
+	return re.d.Match(s)
 }
 
 func (re *Regexp) GetDFA() *dfa.DFA {

@@ -114,43 +114,11 @@ func (dfa *DFA) AllSymbol() []rune {
 	return result
 }
 
-// Runtime has a pointer to d and saves current state for
-// simulating d transitions.
-type Runtime struct {
-	d   *DFA
-	cur common.State
-}
-
-// GetRuntime returns a new Runtime for simulating d transitions.
-func (dfa *DFA) GetRuntime() *Runtime {
-	return NewRuntime(dfa)
-}
-
-// NewRuntime returns a new runtime for DFA.
-func NewRuntime(d *DFA) (r *Runtime) {
-	r = &Runtime{
-		d: d,
-	}
-	r.cur = d.I
-	return
-}
-
-// isAccept returns whether current status is in accept states.
-func (r *Runtime) isAccept() bool {
-	accepts := r.d.F
-	if accepts.Contains(r.cur) {
-		return true
-	}
-	return false
-}
-
-// Matching returns whether the string given is accepted (or not) by
-// simulating the all transitions.
-func (r *Runtime) Matching(str string) bool {
-	r.cur = r.d.I
+func (d *DFA) Match(str string) bool {
+	cur := d.I
 	for _, c := range []rune(str) {
-		key := common.NewRuleArgs(r.cur, c)
-		r.cur = r.d.Rules[key]
+		key := common.NewRuleArgs(cur, c)
+		cur = d.Rules[key]
 	}
-	return r.isAccept()
+	return d.F.Contains(cur)
 }

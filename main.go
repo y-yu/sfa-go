@@ -52,9 +52,8 @@ func main() {
 		return goregex.MatchString(string(bytes))
 	})
 
-	runtime := dfa.NewRuntime(d)
 	measure("DFA\t\t", func() bool {
-		return runtime.Matching(string(bytes))
+		return d.Match(string(bytes))
 	})
 
 	p := 1
