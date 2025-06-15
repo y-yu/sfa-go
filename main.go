@@ -44,7 +44,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("")
+	fmt.Printf("target string length: %d byte\n\n", len(bytes))
 
 	goregex, _ := regexp.Compile(regex)
 
